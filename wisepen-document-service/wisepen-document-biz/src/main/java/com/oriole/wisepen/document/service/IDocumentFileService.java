@@ -18,4 +18,7 @@ public interface IDocumentFileService {
 
     // 从PDF文件中提取纯文本内容
     String extractPDFText(File file);
+
+    // 仅提取第一页文本，供静态首图排版使用
+    String extractFirstPageText(File file);
 }

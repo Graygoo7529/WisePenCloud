@@ -101,4 +101,18 @@ public class DocumentFileServiceImpl implements IDocumentFileService {
             throw new ServiceException(DocumentError.DOCUMENT_PROCESS_CONTENT_READ_FAILED);
         }
     }
+
+    @Override
+    public String extractFirstPageText(File pdfFile) {
+        try (PDDocument document = PDDocument.load(pdfFile)) {
+            if (document.getNumberOfPages() == 0) return "";
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            return PdfTextNormalizer.normalize(stripper.getText(document));
+        } catch (IOException e) {
+            throw new ServiceException(DocumentError.DOCUMENT_PROCESS_CONTENT_READ_FAILED);
+        }
+    }
 }

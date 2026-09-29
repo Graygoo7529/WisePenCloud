@@ -44,6 +44,9 @@ public class DocumentVersionEntity extends DocumentVersionBase implements Persis
     /** PDF 预览文件在 OSS 中的 ObjectKey（Stage 3 归档后写入） */
     private String previewObjectKey;
 
+    /** 无水印第一页文本预览图；生成失败或历史版本可为空。 */
+    private String previewImageObjectKey;
+
     @CreatedDate
     private LocalDateTime createTime;
 
