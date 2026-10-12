@@ -31,6 +31,7 @@ import com.oriole.wisepen.file.storage.service.IStorageService;
 import com.oriole.wisepen.file.storage.strategy.StorageManager;
 import com.oriole.wisepen.file.storage.strategy.StorageProvider;
 import jakarta.servlet.http.HttpServletRequest;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class StorageServiceImpl implements IStorageService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @WithSpan("storage.upload.initialize")
     public UploadInitRespDTO initUpload(UploadInitReqDTO req) {
         StorageProvider provider = storageManager.getProvider(req.getConfigId());
 
