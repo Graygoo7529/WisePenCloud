@@ -7,15 +7,12 @@ import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageReferencesRes
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageReferencesResponse.ImageReference;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageReferencesResponse.PageLocation;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageResolveResponse;
-import com.oriole.wisepen.document.api.domain.dto.res.DocumentPreviewImageResponse;
 import com.oriole.wisepen.document.api.enums.DocumentStatusEnum;
 import com.oriole.wisepen.document.config.DocumentProperties;
 import com.oriole.wisepen.document.domain.entity.DocumentVersionEntity;
 import com.oriole.wisepen.document.exception.DocumentError;
 import com.oriole.wisepen.document.repository.DocumentContentRepository;
 import com.oriole.wisepen.document.service.IDocumentAssetService;
-import com.oriole.wisepen.document.service.IDocumentFileService;
-import com.oriole.wisepen.document.util.DocumentPreviewImageGenerator;
 import com.oriole.wisepen.document.util.MarkdownAssetLinkCodec;
 import com.oriole.wisepen.document.util.MarkdownImages;
 import com.oriole.wisepen.document.util.MarkdownPageBreakInjector;
@@ -37,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -57,9 +53,7 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
 
     private final RemoteStorageService remoteStorageService;
     private final DocumentContentRepository documentContentRepository;
-    private final IDocumentFileService documentFileService;
     private final MarkdownPageBreakInjector pageBreakInjector;
-    private final DocumentPreviewImageGenerator previewImageGenerator;
     private final DocumentProperties properties;
 
     @Override
@@ -140,31 +134,6 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
     }
 
     @Override
-    public String generateAndUploadPreviewImage(File pdfFile, String documentId) {
-        Path output = null;
-        try {
-            String rawText = documentFileService.extractFirstPageText(pdfFile);
-            if (rawText == null || rawText.isBlank()) return null;
-            Path directory = Path.of(properties.getCachePath());
-            Files.createDirectories(directory);
-            output = Files.createTempFile(directory, documentId + "_preview_", ".png");
-            previewImageGenerator.generatePreviewImage(rawText, output);
-            return upload(Files.readAllBytes(output), documentId + "/assets/preview", "page-0001.png").getObjectKey();
-        } catch (Exception e) {
-            log.warn("document preview image skipped. documentId={}", documentId, e);
-            return null;
-        } finally {
-            if (output != null) {
-                try {
-                    Files.deleteIfExists(output);
-                } catch (IOException e) {
-                    log.warn("document preview image cache cleanup failed. documentId={}", documentId, e);
-                }
-            }
-        }
-    }
-
-    @Override
     public DocumentImageReferencesResponse listImageReferences(DocumentVersionEntity version, Integer pageNo) {
         assertReady(version);
         if (pageNo != null && pageNo < 1) throw new ServiceException(CommonError.REQUEST_PARAM_INVALID, "页码必须大于零");
@@ -190,27 +159,13 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
     }
 
     @Override
-    public DocumentPreviewImageResponse getPreviewImage(DocumentVersionEntity version) {
-        assertReady(version);
-        String key = version.getPreviewImageObjectKey();
-        if (key != null) {
-            key = MarkdownAssetLinkCodec.objectKey(key, version.getDocumentId());
-            if (!DocumentAssetKey.isPreview(key)) throw new ServiceException(DocumentError.DOCUMENT_IMAGE_NOT_FOUND);
-        }
-        return DocumentPreviewImageResponse.builder().resourceId(version.getResourceId()).documentId(version.getDocumentId())
-                .version(version.getVersion()).objectKey(key).markdownLink(key == null ? null : MarkdownAssetLinkCodec.link(key))
-                .sourcePageNo(1).previewKind("TEXT").build();
-    }
-
-    @Override
     public DocumentImageResolveResponse resolveImage(DocumentVersionEntity version, String assetRef) {
         assertReady(version);
         String key = MarkdownAssetLinkCodec.objectKey(assetRef, version.getDocumentId());
-        boolean referenced = DocumentAssetKey.isPreview(key) && key.equals(version.getPreviewImageObjectKey());
-        if (!referenced && DocumentAssetKey.isImage(key)) {
-            referenced = listImageReferences(version, null).getImages().stream().anyMatch(image -> key.equals(image.getObjectKey()));
+        if (!DocumentAssetKey.isImage(key)
+                || listImageReferences(version, null).getImages().stream().noneMatch(image -> key.equals(image.getObjectKey()))) {
+            throw new ServiceException(DocumentError.DOCUMENT_IMAGE_NOT_FOUND);
         }
-        if (!referenced) throw new ServiceException(DocumentError.DOCUMENT_IMAGE_NOT_FOUND);
         long duration = properties.getDownloadUrlDurationSeconds();
         R<String> response = remoteStorageService.getDownloadUrl(key, duration, null);
         if (response == null || !Integer.valueOf(200).equals(response.getCode()) || response.getData() == null) {
@@ -248,22 +203,9 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
         return MarkdownImages.withoutInlineData(copied);
     }
 
-    @Override
-    public String copyPreviewImage(String sourceKey, String sourceDocumentId, String targetDocumentId, List<String> copiedKeys) {
-        if (sourceKey == null) return null;
-        try {
-            String key = MarkdownAssetLinkCodec.objectKey(sourceKey, sourceDocumentId);
-            if (!DocumentAssetKey.isPreview(key)) throw new ServiceException(DocumentError.DOCUMENT_IMAGE_NOT_FOUND);
-            return copyAsset(key, targetDocumentId, copiedKeys);
-        } catch (Exception e) {
-            log.warn("document preview image copy skipped. sourceDocumentId={} documentId={}", sourceDocumentId, targetDocumentId, e);
-            return null;
-        }
-    }
-
     private String copyAsset(String sourceKey, String targetDocumentId, List<String> copiedKeys) {
         String fileName = sourceKey.substring(sourceKey.lastIndexOf('/') + 1);
-        String bizTag = targetDocumentId + (DocumentAssetKey.isImage(sourceKey) ? "/assets/images" : "/assets/preview");
+        String bizTag = targetDocumentId + "/assets/images";
         R<StorageRecordDTO> response = remoteStorageService.copyFile(CopyReqDTO.builder().sourceObjectKey(sourceKey)
                 .scene(StorageSceneEnum.PRIVATE_DOC_ASSET).bizTag(bizTag).targetFileName(fileName).build());
         if (response == null || !Integer.valueOf(200).equals(response.getCode()) || response.getData() == null

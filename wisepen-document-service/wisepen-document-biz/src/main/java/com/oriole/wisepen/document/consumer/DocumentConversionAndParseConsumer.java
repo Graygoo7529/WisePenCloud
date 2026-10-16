@@ -148,7 +148,6 @@ public class DocumentConversionAndParseConsumer {
             if ((ResourceType.DOC == msg.getFileType() || ResourceType.DOCX == msg.getFileType()) && StrUtil.isNotBlank(content.getMarkdown())) {
                 content.setMarkdown(documentAssetService.processMarkdown(content.getMarkdown(), pdfFile, msg.getDocumentId()));
             }
-            String previewImageKey = documentAssetService.generateAndUploadPreviewImage(pdfFile, msg.getDocumentId());
 
             // 预埋空水印占位 Form XObject（/WisepenWM），生成 hooked PDF（预览PDF）
             // 上传至 OSS 的是 hooked PDF，而非原始 pdfFile
@@ -156,7 +155,7 @@ public class DocumentConversionAndParseConsumer {
             // 将 hooked PDF 上传至 OSS
             String previewKey = uploadPreviewPdf(msg.getDocumentId(), hookedPdf);
 
-            documentService.saveConversionAndParseResult(msg.getDocumentId(), previewKey, previewImageKey, pdfMeta, content);
+            documentService.saveConversionAndParseResult(msg.getDocumentId(), previewKey, pdfMeta, content);
             documentService.finalizeToReady(msg.getDocumentId());
             log.info("document parse finished. documentId={} previewObjectKey={}",
                     msg.getDocumentId(), previewKey);

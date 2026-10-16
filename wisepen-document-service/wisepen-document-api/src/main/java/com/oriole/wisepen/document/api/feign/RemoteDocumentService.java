@@ -3,7 +3,6 @@ package com.oriole.wisepen.document.api.feign;
 import com.oriole.wisepen.common.core.domain.R;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentSearchTextResponse;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageReferencesResponse;
-import com.oriole.wisepen.document.api.domain.dto.res.DocumentPreviewImageResponse;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageResolveResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,10 +16,6 @@ public interface RemoteDocumentService {
     R<DocumentImageReferencesResponse> getDocumentImageReferences(@RequestParam("resourceId") String resourceId,
             @RequestParam(value = "version", required = false) Integer version,
             @RequestParam(value = "pageNo", required = false) Integer pageNo);
-
-    @GetMapping("/internal/document/getDocumentPreviewImage")
-    R<DocumentPreviewImageResponse> getDocumentPreviewImage(@RequestParam("resourceId") String resourceId,
-            @RequestParam(value = "version", required = false) Integer version);
 
     @GetMapping("/internal/document/resolveDocumentImage")
     R<DocumentImageResolveResponse> resolveDocumentImage(@RequestParam("resourceId") String resourceId,

@@ -21,7 +21,6 @@ import com.oriole.wisepen.document.api.domain.dto.res.DocumentUploadInitResponse
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentVersionInfoResponse;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageReferencesResponse;
 import com.oriole.wisepen.document.api.domain.dto.res.DocumentImageResolveResponse;
-import com.oriole.wisepen.document.api.domain.dto.res.DocumentPreviewImageResponse;
 import com.oriole.wisepen.document.api.enums.DocumentDownloadType;
 import com.oriole.wisepen.document.domain.entity.DocumentInfoEntity;
 import com.oriole.wisepen.document.domain.entity.DocumentVersionEntity;
@@ -84,24 +83,10 @@ public class DocumentController {
         return R.ok(documentAssetService.listImageReferences(getViewableVersion(resourceId, targetVersion), pageNo));
     }
 
-    @Operation(summary = "获取文档首图", description = """
-            - 用途：获取第一页文本排版图的稳定引用。
-            - 请求：resourceId 指定文档；targetVersion 为空时选定当前版本。
-            - 约束：当前用户拥有实际选定版本的 VIEW 动作；文档已就绪。
-            - 处理：读取版本的 previewImageObjectKey，不生成或上传图片。
-            - 失败：无权访问 -> DocumentError.DOCUMENT_PERMISSION_DENIED；文档不存在 -> DocumentError.DOCUMENT_NOT_FOUND；未就绪 -> DocumentError.DOCUMENT_PREVIEW_NOT_READY。
-            - 响应：返回版本、首图 key 和链接；缺图时 key 和链接为空；previewKind=TEXT，sourcePageNo=1，无水印。
-            """)
-    @GetMapping("/getDocumentPreviewImage")
-    public R<DocumentPreviewImageResponse> getDocumentPreviewImage(@RequestParam String resourceId,
-            @RequestParam(value = "targetVersion", required = false) Integer targetVersion) {
-        return R.ok(documentAssetService.getPreviewImage(getViewableVersion(resourceId, targetVersion)));
-    }
-
     @Operation(summary = "解析文档图片", description = """
-            - 用途：为按需读取的一张正文图片或首图申请下载地址。
+            - 用途：为按需读取的一张正文图片申请下载地址。
             - 请求：resourceId、可选 targetVersion 和 assetRef；assetRef 为 wisepen-asset:/// 平台链接。
-            - 约束：当前用户拥有实际选定版本的 VIEW 动作；图片必须属于该版本并被正文引用或为登记的首图。
+            - 约束：当前用户拥有实际选定版本的 VIEW 动作；图片必须属于该版本并被正文引用。
             - 处理：验证链接和引用后向存储服务申请限时 URL；不会把签名参数写回正文。
             - 失败：无权访问 -> DocumentError.DOCUMENT_PERMISSION_DENIED；非法链接 -> CommonError.REQUEST_PARAM_INVALID；未引用图片 -> DocumentError.DOCUMENT_IMAGE_NOT_FOUND；下载地址不可用 -> DocumentError.DOCUMENT_DOWNLOAD_URL_APPLY_FAILED。
             - 响应：返回实际 documentId、version、objectKey、downloadUrl 和 expiresInSeconds。
@@ -116,7 +101,7 @@ public class DocumentController {
         return R.ok(documentAssetService.resolveImage(getViewableVersion(resourceId, targetVersion), assetRef));
     }
 
-    /** 三个图片入口只选定一次版本，授权与读取使用同一版本，避免当前版本变化造成错配。 */
+    /** 图片入口只选定一次版本，授权与读取使用同一版本，避免当前版本变化造成错配。 */
     private DocumentVersionEntity getViewableVersion(String resourceId, Integer targetVersion) {
         DocumentVersionEntity version = documentService.getDocumentVersion(resourceId, targetVersion);
         ResourceCheckPermissionResDTO permission = remoteResourceService.checkResPermission(ResourceCheckPermissionReqDTO.builder()

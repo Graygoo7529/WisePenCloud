@@ -29,8 +29,8 @@ public class InternalStorageController {
     private final IStorageService storageService;
 
     @Operation(summary = "内部上传文档图片", description = """
-            - 用途：同步保存文档转换生成的正文图片或第一页文本预览图。
-            - 请求：file 为图片；bizTag 为 documentId/assets/images 或 documentId/assets/preview；fileName 为固定图片名；configId 可选。
+            - 用途：同步保存文档转换生成的正文图片。
+            - 请求：file 为图片；bizTag 为 documentId/assets/images；fileName 为固定图片名；configId 可选。
             - 约束：仅内部服务调用；场景固定为 PRIVATE_DOC_ASSET；文件受现有小文件大小限制；已删除记录不能恢复。
             - 处理：上传到文档版本目录并登记 AVAILABLE，同名图片正常覆盖，不发送上传回调事件。
             - 失败：路径无效 -> CommonError.REQUEST_PARAM_INVALID；文件过大 -> FileStorageError.FILE_SIZE_ABOVE_UPPER_BOUND；已删除 -> FileStorageError.FILE_RECORD_NOT_FOUND。
@@ -46,12 +46,12 @@ public class InternalStorageController {
     }
 
     @Operation(summary = "内部查询文档图片文件标识", description = """
-            - 用途：按文档版本目录收集正文图片和首图的 objectKey，供调用方发布文件删除消息。
+            - 用途：按文档版本目录收集正文图片的 objectKey，供调用方发布文件删除消息。
             - 请求：请求体为完整 private/docs/{documentId}/ 前缀列表；afterObjectKey 可选，续查时传上一页最后一个 key；size 为每页数量。
             - 约束：仅内部服务调用；不接受更宽泛的目录或通配符；size 必须在 1 至 500 之间。
             - 处理：只查询 PRIVATE_DOC_ASSET 场景中未软删除的存储记录，按 objectKey 升序返回游标之后的结果；不访问 OSS 或修改记录。
             - 失败：目录或每页数量无效 -> CommonError.REQUEST_PARAM_INVALID。
-            - 响应：至多 size 个正文图片或首图的 key；空前缀列表或无后续匹配记录时返回空列表。
+            - 响应：至多 size 个正文图片的 key；空前缀列表或无后续匹配记录时返回空列表。
             """)
     @PostMapping("/listDocumentAssetObjectKeysByPrefixes")
     public R<List<String>> listDocumentAssetObjectKeysByPrefixes(@RequestBody List<String> prefixes,

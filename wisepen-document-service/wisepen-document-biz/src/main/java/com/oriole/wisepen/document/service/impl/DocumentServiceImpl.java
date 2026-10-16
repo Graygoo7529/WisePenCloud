@@ -327,7 +327,7 @@ public class DocumentServiceImpl implements IDocumentService {
             }
         }
 
-        // 版本目录内的正文引用图片和首图
+        // 版本目录内的正文引用图片
         if (!documentIds.isEmpty()) {
             List<String> prefixes = documentIds.stream()
                     .map(DocumentAssetKey::prefix)
@@ -466,10 +466,10 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     @Override
-    public void saveConversionAndParseResult(String documentId, String previewObjectKey, String previewImageObjectKey, DocumentPdfMetaEntity meta, DocumentContentEntity content) {
+    public void saveConversionAndParseResult(String documentId, String previewObjectKey, DocumentPdfMetaEntity meta, DocumentContentEntity content) {
         DocumentVersionEntity entity = documentVersionRepository.findById(documentId)
                 .orElseThrow(() -> new ServiceException(DocumentError.DOCUMENT_NOT_FOUND));
-        documentVersionRepository.updatePreviewObjectKeysById(documentId, previewObjectKey, previewImageObjectKey);
+        documentVersionRepository.updatePreviewObjectKeyById(documentId, previewObjectKey);
 
         content.setDocumentId(documentId);
         content.setVersion(entity.getVersion());
@@ -574,9 +574,6 @@ public class DocumentServiceImpl implements IDocumentService {
             copiedObjectKeys.add(copied.getObjectKey());
             String copiedPreviewPdfKey = copied.getObjectKey();
 
-            String copiedPreviewImageKey = documentAssetService.copyPreviewImage(sourceVersion.getPreviewImageObjectKey(),
-                    sourceVersion.getDocumentId(), targetDocumentId, copiedObjectKeys);
-
             // 复制 文档内容
             DocumentContentEntity sourceContent = documentContentRepository.findById(sourceVersion.getDocumentId())
                     .orElseThrow(() -> new ServiceException(DocumentError.DOCUMENT_FORK_FAILED));
@@ -601,7 +598,6 @@ public class DocumentServiceImpl implements IDocumentService {
                     .version(1)
                     .sourceObjectKey(copiedSourceKey)
                     .previewObjectKey(copiedPreviewPdfKey)
-                    .previewImageObjectKey(copiedPreviewImageKey)
                     .uploadMeta(sourceVersion.getUploadMeta())
                     .documentStatus(new DocumentStatus(DocumentStatusEnum.READY))
                     .maxPreviewPages(sourceVersion.getMaxPreviewPages())

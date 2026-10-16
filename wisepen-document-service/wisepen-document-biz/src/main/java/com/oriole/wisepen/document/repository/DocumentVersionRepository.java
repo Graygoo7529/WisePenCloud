@@ -31,8 +31,8 @@ public interface DocumentVersionRepository extends MongoRepository<DocumentVersi
     void updateStatusById(String documentId, DocumentStatus status);
 
     @Query("{'_id': ?0}")
-    @Update("{'$set': {'previewObjectKey': ?1, 'previewImageObjectKey': ?2}}")
-    void updatePreviewObjectKeysById(String documentId, String previewObjectKey, String previewImageObjectKey);
+    @Update("{'$set': {'previewObjectKey': ?1}}")
+    void updatePreviewObjectKeyById(String documentId, String previewObjectKey);
 
     @Query("{ 'uploadMeta.uploaderId': ?0, 'documentStatus.status': { $in: ?1 } }")
     List<DocumentVersionEntity> findByUploaderIdAndStatusIn(Long uploaderId, List<DocumentStatusEnum> statusList);

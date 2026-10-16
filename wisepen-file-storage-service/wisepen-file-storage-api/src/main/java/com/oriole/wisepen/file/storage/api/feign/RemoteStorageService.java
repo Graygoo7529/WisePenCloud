@@ -40,7 +40,7 @@ public interface RemoteStorageService {
                                             @RequestParam("fileName") String fileName,
                                             @RequestParam(value = "configId", required = false) Long configId);
 
-    /** 按完整文档版本前缀分页查询未删除的正文图片和首图 key。 */
+    /** 按完整文档版本前缀分页查询未删除的正文图片 key。 */
     @PostMapping("/listDocumentAssetObjectKeysByPrefixes")
     R<List<String>> listDocumentAssetObjectKeysByPrefixes(@RequestBody List<String> prefixes,
             @RequestParam(value = "afterObjectKey", required = false) String afterObjectKey,

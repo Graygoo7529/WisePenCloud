@@ -13,7 +13,6 @@ public final class DocumentAssetKey {
     private static final String EXTENSION = "(?:png|jpg|jpeg|gif|bmp|tif|tiff|webp)";
     private static final String ROOT = StorageSceneEnum.PRIVATE_DOC_ASSET.getPrefix() + "/";
     private static final Pattern IMAGE = Pattern.compile(ROOT + DOCUMENT_ID + "/assets/images/image-[0-9]{4,9}\\." + EXTENSION);
-    private static final Pattern PREVIEW = Pattern.compile(ROOT + DOCUMENT_ID + "/assets/preview/page-0001\\.png");
     private static final Pattern PREFIX = Pattern.compile(ROOT + DOCUMENT_ID + "/");
 
     private DocumentAssetKey() {
@@ -35,13 +34,9 @@ public final class DocumentAssetKey {
         return key != null && IMAGE.matcher(key).matches();
     }
 
-    public static boolean isPreview(String key) {
-        return key != null && PREVIEW.matcher(key).matches();
-    }
-
     public static String build(String bizTag, String fileName) {
         String key = ROOT + bizTag + "/" + fileName;
-        if (!isImage(key) && !isPreview(key)) {
+        if (!isImage(key)) {
             throw new ServiceException(CommonError.REQUEST_PARAM_INVALID, "文档图片目录或文件名无效");
         }
         return key;

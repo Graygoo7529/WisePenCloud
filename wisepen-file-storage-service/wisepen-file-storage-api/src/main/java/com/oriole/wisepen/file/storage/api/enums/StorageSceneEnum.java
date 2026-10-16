@@ -21,7 +21,7 @@ public enum StorageSceneEnum {
     PRIVATE_SKILL_ASSET(5, "PRIVATE_SKILL_ASSET", "private/skills"), // Skill 文档与脚本等私有资产
     PRIVATE_AGENT_ASSET(6, "PRIVATE_AGENT_ASSET", "private/agents"), // Agent 文档与工具等私有资产
     PRIVATE_AI_ATTACHMENT(7, "PRIVATE_AI_ATTACHMENT", "private/ai/attachments"), // AI 对话临时附件
-    PRIVATE_DOC_ASSET(8, "PRIVATE_DOC_ASSET", "private/docs"); // 文档版本的正文图片和首图
+    PRIVATE_DOC_ASSET(8, "PRIVATE_DOC_ASSET", "private/docs"); // 文档版本的正文图片
 
     private final int code;
 

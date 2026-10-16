@@ -68,7 +68,7 @@ public interface IDocumentService {
     void updateStatus(String documentId, DocumentStatus status);
 
     // 归档文档解析的结果
-    void saveConversionAndParseResult(String documentId, String previewObjectKey, String previewImageObjectKey, DocumentPdfMetaEntity meta, DocumentContentEntity content);
+    void saveConversionAndParseResult(String documentId, String previewObjectKey, DocumentPdfMetaEntity meta, DocumentContentEntity content);
 
     // 文档就绪
     void finalizeToReady(String documentId);

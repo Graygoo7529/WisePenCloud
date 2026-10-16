@@ -13,7 +13,7 @@ public final class MarkdownAssetLinkCodec {
     }
 
     public static String link(String objectKey) {
-        if (!DocumentAssetKey.isImage(objectKey) && !DocumentAssetKey.isPreview(objectKey)) {
+        if (!DocumentAssetKey.isImage(objectKey)) {
             throw new ServiceException(CommonError.REQUEST_PARAM_INVALID, "文档图片 key 无效");
         }
         return SCHEME + objectKey;
@@ -22,7 +22,7 @@ public final class MarkdownAssetLinkCodec {
     public static String objectKey(String assetRef, String documentId) {
         String key = assetRef != null && assetRef.startsWith(SCHEME) ? assetRef.substring(SCHEME.length()) : assetRef;
         // 仅接受规范 ASCII key，编码分隔符、query、fragment、authority 都无法通过目录校验。
-        if ((!DocumentAssetKey.isImage(key) && !DocumentAssetKey.isPreview(key))
+        if (!DocumentAssetKey.isImage(key)
                 || !key.startsWith(DocumentAssetKey.prefix(documentId) + "assets/")) {
             throw new ServiceException(CommonError.REQUEST_PARAM_INVALID, "文档图片链接或版本归属无效");
         }
