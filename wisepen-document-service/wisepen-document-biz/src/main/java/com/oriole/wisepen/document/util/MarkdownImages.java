@@ -309,7 +309,6 @@ public final class MarkdownImages {
         return "【图片暂不可用" + (alt == null || alt.isBlank() ? "" : "：" + cleanAlt(alt)) + "】";
     }
 
-    /** 兼顾历史内容和损坏节点；代码示例不作为图片上传，但 data URI 载荷仍不进入文本上下文。 */
     public static String withoutInlineData(String markdown) {
         if (markdown == null || !markdown.toLowerCase(Locale.ROOT).contains("data:image/")) return markdown;
         String rewritten = parse(markdown).rewrite(image -> isDataImage(image.source())

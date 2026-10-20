@@ -33,7 +33,6 @@ import com.oriole.wisepen.document.service.IDocumentAssetService;
 import com.oriole.wisepen.document.service.IDocumentService;
 import com.oriole.wisepen.document.service.IOnlyOfficeEditService;
 import com.oriole.wisepen.document.util.DocumentAssetKey;
-import com.oriole.wisepen.document.util.MarkdownImages;
 import com.oriole.wisepen.file.storage.api.domain.dto.CopyReqDTO;
 import com.oriole.wisepen.file.storage.api.domain.dto.StorageRecordDTO;
 import com.oriole.wisepen.file.storage.api.domain.dto.UploadInitReqDTO;
@@ -654,6 +653,6 @@ public class DocumentServiceImpl implements IDocumentService {
     }
 
     private static String getSearchText(DocumentContentEntity contentEntity) {
-        return contentEntity.getMarkdown() != null ? MarkdownImages.withoutInlineData(contentEntity.getMarkdown()) : contentEntity.getRawText();
+        return contentEntity.getMarkdown() != null ? contentEntity.getMarkdown() : contentEntity.getRawText();
     }
 }

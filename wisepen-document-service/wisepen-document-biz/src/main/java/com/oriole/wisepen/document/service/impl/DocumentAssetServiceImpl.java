@@ -21,7 +21,6 @@ import com.oriole.wisepen.file.storage.api.domain.dto.CopyReqDTO;
 import com.oriole.wisepen.file.storage.api.domain.dto.StorageRecordDTO;
 import com.oriole.wisepen.file.storage.api.enums.StorageSceneEnum;
 import com.oriole.wisepen.file.storage.api.feign.RemoteStorageService;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -90,8 +89,6 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
                     StorageRecordDTO stored = upload(bytes, DocumentAssetKey.assetsBizTag(documentId), fileName);
                     uploaded[0]++;
                     return MarkdownImages.image(alt, MarkdownAssetLinkCodec.link(stored.getObjectKey()));
-                } catch (FeignException | ServiceException e) {
-                    throw e; // 依赖服务故障：解析进入 FAILED 可重试，避免图片被永久降级
                 } catch (Exception e) {
                     missing[0]++;
                     log.warn("document image externalization skipped. documentId={} imageIndex={}", documentId, index, e);
@@ -207,8 +204,6 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
                 try {
                     String sourceKey = MarkdownAssetLinkCodec.objectKey(image.source(), sourceDocumentId);
                     target = copyAsset(sourceKey, targetDocumentId, copiedKeys);
-                } catch (FeignException | ServiceException e) {
-                    throw e; // 依赖服务故障：fork 失败并回滚已复制的文件
                 } catch (Exception e) {
                     log.warn("document image copy skipped. sourceDocumentId={} documentId={}", sourceDocumentId, targetDocumentId, e);
                 }
