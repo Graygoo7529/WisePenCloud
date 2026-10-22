@@ -31,9 +31,19 @@ public interface IStorageService {
      */
     StorageRecordDTO uploadSmallFileProxy(MultipartFile file, StorageSceneEnum scene, String bizTag);
 
-    StorageRecordDTO uploadSmallFile(MultipartFile file, StorageSceneEnum scene, String bizTag, String fileName, Long configId);
+    StorageRecordDTO uploadSmallFileWithName(MultipartFile file, StorageSceneEnum scene, String bizTag, String fileName, Long configId);
 
     List<String> listObjectKeysByPrefixes(List<String> prefixes, String afterObjectKey, int size);
+
+    /**
+     * 内部业务服务代理上传小文件内容。
+     */
+    StorageRecordDTO uploadSmallFile(byte[] content, String extension, StorageSceneEnum scene, String bizTag);
+
+    /**
+     * 内部业务服务读取小文件内容。
+     */
+    byte[] getSmallFileContent(String objectKey);
 
     /**
      * 获取带自定义响应头的单文件的私有下载链接

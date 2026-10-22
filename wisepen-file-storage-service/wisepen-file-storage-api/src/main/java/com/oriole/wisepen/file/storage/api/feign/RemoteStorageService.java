@@ -34,18 +34,33 @@ public interface RemoteStorageService {
     R<StorageRecordDTO> copyFile(@RequestBody CopyReqDTO req);
 
     /** 同步上传小文件并生成固定文件名的存储记录，成功后即可读取，无上传回调。 */
-    @PostMapping(value = "/uploadSmallFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    R<StorageRecordDTO> uploadSmallFile(@RequestPart("file") MultipartFile file,
+    @PostMapping(value = "/uploadSmallFileWithName", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    R<StorageRecordDTO> uploadSmallFileWithName(@RequestPart("file") MultipartFile file,
                                         @RequestParam("scene") StorageSceneEnum scene,
                                         @RequestParam("bizTag") String bizTag,
                                         @RequestParam("fileName") String fileName,
                                         @RequestParam(value = "configId", required = false) Long configId);
 
-    /** 按前缀分页查询未删除的存储记录 objectKey。 */
+    /** 按前缀游标分页查询未删除的存储记录 objectKey。 */
     @PostMapping("/listObjectKeysByPrefixes")
     R<List<String>> listObjectKeysByPrefixes(@RequestBody List<String> prefixes,
             @RequestParam(value = "afterObjectKey", required = false) String afterObjectKey,
             @RequestParam("size") int size);
+
+    /**
+     * 由内部业务服务代理上传小文件内容
+     */
+    @PostMapping(value = "/uploadSmallFile", consumes = "application/octet-stream")
+    R<StorageRecordDTO> uploadSmallFile(@RequestBody byte[] content,
+                                        @RequestParam("extension") String extension,
+                                        @RequestParam("scene") StorageSceneEnum scene,
+                                        @RequestParam("bizTag") String bizTag);
+
+    /**
+     * 由内部业务服务读取小文件内容
+     */
+    @GetMapping("/getSmallFileContent")
+    R<byte[]> getSmallFileContent(@RequestParam("objectKey") String objectKey);
 
     /**
      * 获取单文件的防盗链下载 URL

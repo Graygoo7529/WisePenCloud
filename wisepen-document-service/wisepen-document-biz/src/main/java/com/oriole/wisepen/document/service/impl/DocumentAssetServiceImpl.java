@@ -134,7 +134,7 @@ public class DocumentAssetServiceImpl implements IDocumentAssetService {
     }
 
     private StorageRecordDTO upload(byte[] bytes, String bizTag, String fileName) {
-        R<StorageRecordDTO> response = remoteStorageService.uploadSmallFile(new ImageFile(fileName, bytes),
+        R<StorageRecordDTO> response = remoteStorageService.uploadSmallFileWithName(new ImageFile(fileName, bytes),
                 StorageSceneEnum.PRIVATE_DOC, bizTag, fileName, null);
         if (response == null || !Integer.valueOf(200).equals(response.getCode()) || response.getData() == null) {
             throw new ServiceException(DocumentError.DOCUMENT_IMAGE_UPLOAD_FAILED);
